@@ -13,6 +13,10 @@ function[pos,vel,poshat, velhat, poshatinf, velhatinf, HinfGains, KalmanGains] =
 %   SteadyState = flag indicating use of steady state filter.
 %                 1 = steady state, 0 = time-varying
 
+
+%The H-infinity filter minimizes the estimation error in the worst case, which makes it more robust than the standard Kalman filter.
+    
+
 measnoise = 2; % nominal velocity measurement noise (feet/sec)
 accelnoise = 0.2; % nominal acceleration noise (feet/sec^2)
 a = [1 dt; 0 1]; % transition matrix
@@ -31,7 +35,7 @@ P = Sw; % initial Kalman filter estimation covariance
 xhatinf = x; % initial H-infinity filter state estimate
 Pinf = 0.01*eye(2);
 W = [0.0003 0.0050; 0.0050 0.1000]/1000;
-V = 0.01;
+V = 0.01; 
 Q = [0.01 0; 0 0.01];
 
 % Initialize arrays for later plotting.
@@ -54,8 +58,11 @@ for t = 0 : dt: duration-dt
       % Use steady-state H-infinity gains
       K = [0.11; 0.09];
    else
+      % Compute the covariance of the L matrix.
       L = inv(eye(2) - g * Q * Pinf + c' * inv(V) * c * Pinf);
+      % Form the H-Infinity Gain matrix.
       K = a * Pinf * L * c' * inv(V);
+      % Compute the covariance of the H-Infinity estimation error.
       Pinf = a * Pinf * L * a' + W;
       % Force Pinf to be symmetric.
       Pinf = (Pinf + Pinf') / 2;
@@ -66,7 +73,9 @@ for t = 0 : dt: duration-dt
          return;
       end
    end
+   % Update the H-infinity filter state estimate.
    xhatinf = a * xhatinf + b * u + K * (y - c * xhatinf);
+   % Save some parameters for plotting later.
    HinfGains = [HinfGains K];
    poshatinf = [poshatinf; xhatinf(1)];
    velhatinf = [velhatinf; xhatinf(2)];

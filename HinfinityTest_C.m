@@ -6,6 +6,12 @@ duration = 20;
 dt = 0.1;
 SteadyState = 0;
 
+%codegen hinf_integrated -args {1,2,3,4} hinf.c
+
+%[pos,vel,poshat, velhat, poshatinf, velhatinf, HinfGains, KalmanGains] = hinf_integrated_mex(g, duration, dt, SteadyState);
+%fprintf('Interpretation from Matlab Coder auto-gen C code');
+
+
 
 [pos,vel,poshat, velhat, poshatinf, velhatinf, HinfGains, KalmanGains] = Hinfinity_mex(g, duration, dt, SteadyState);
 fprintf('Interpretation from Matlab Coder auto-gen C code');
